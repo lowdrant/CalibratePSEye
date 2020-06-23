@@ -1,0 +1,4 @@
+"boardsize", 3, 4
+"winsize", 11, 11
+"zerozone", -1, -1
+"criteria", 3000, 30000, 1

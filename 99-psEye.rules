@@ -1,0 +1,10 @@
+#   OVERVIEW:
+#  
+#   rules for mounting my PlayStation Eye camera in a more controlled way
+#
+#   NOTE:
+#       KERNEL=="video?" is CRITICAL for this rule to work. The symlink will
+#       be created without it, but OpenCV won't be able to access the camera
+#
+# @author Marion Anderson
+KERNEL=="video?", ATTRS{idProduct}=="2000", ATTRS{idVendor}=="1415", SYMLINK+="psEye"

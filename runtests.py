@@ -24,7 +24,7 @@ from logging import ERROR as log_ERROR
 from logging import INFO as log_INFO
 from logging import WARNING as log_WARNING
 from logging import basicConfig, critical, debug, error, info, warning
-from os import listdir
+from os import listdir, mkdir
 from os import remove as os_remove
 from os.path import dirname
 from os.path import exists as os_exists
@@ -59,11 +59,13 @@ if __name__ == '__main__':
         level=log_INFO
     elif args.loglvl == 'DEBUG':
         level=log_DEBUG
-    basicConfig(level=level,
-                        format='\t%(levelname)s:%(funcName)s:%(message)s')
+    basicConfig(level=level, format='\t%(levelname)s:%(funcName)s:%(message)s')
     fdir = realpath(dirname(__file__))
     testdir = realpath(fdir + '/tests')
     calibsdir = testdir + '/calibs_00000000-000000'
+    if not os_exists(fdir + '/data'):
+        mkdir(fdir + '/data')
+        warning('data/ directory did not exists; created it')
     # params for chessboard on marand's HP monitor
     #   last updated: 2020-05-22
     #  points of corners on chessboard

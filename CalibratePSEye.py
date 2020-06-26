@@ -7,21 +7,30 @@ as found at https://www.apache.org/licenses/LICENSE-2.0
 
     OVERVIEW:
 
-    This file contains a robust (some might say ornery) interface for camera
-    chessboard calibration, JPG image undistortion, and most importantly (to me)
+    This file contains a robust (some might say ornery) interface to chessboard
+    calibrate a camera, undistort JPEG images, and most importantly (to me)
     store the calibration images and found parameters. It currently only works
     on UNIX systems, due to my laziness about filepath separators.
 
-    Its primary feature is keeping track of all the calibration data for you,
-    in a timestamped format: `basepath/calibration_YYYYmmdd-HHMMSS.
+    Its primary feature is keeping track of all the calibration data for you.
     I made a point of having it aggressively save/duplicate/timestamp
-    calibration images, data, parameters, metadata, etc. so that the
-    calibrations can be easily reconstructed at a moment's notice any time in
-    the future. To this end, most functions will accept Python data structures
-    or filename strings equivalently.
+    calibration data, parameters, and metadata so that the calibrations can
+    be easily reconstructed at a moment's notice any time in the future.
+    To this end, most functions will accept Python data structures or
+    filename strings equivalently.
 
     The name comes from the PlayStation Eye, a lovely USB camera capable of
     100 FPS at 320x240px, with which this library was developed.
+
+    GOTCHAS:
+
+        1. Currently only works on UNIX systems (2020-06-22)
+
+        2. Requires the specification of a directory to store calibration directories
+
+        3. Only pays attention to JPEGs to match UofM archival standards
+
+        4. Uses CHESSBOARD calibration
 
     MAIN CLASSES:
 
@@ -37,16 +46,6 @@ as found at https://www.apache.org/licenses/LICENSE-2.0
 
         livetest -- view undistorted images from a live camera video feed
 
-    GOTCHAS:
-
-        1. Currently only works on UNIX systems (2020-06-22)
-
-        2. Requires the existence of a 'data' directory
-
-        3. Only pays attention to JPEGs to match UofM archival standards
-
-        4. Uses CHESSBOARD calibration
-
     EXAMPLES:
 
         1. Calibration
@@ -58,15 +57,12 @@ as found at https://www.apache.org/licenses/LICENSE-2.0
                 'zerozone': (-1, -1),
                 'criteria': (TERM_CRITERIA_EPS+TERM_CRITERIA_MAX_ITER, 30, 0.001)
             }
-
             # physical locations of chessboard corners
             sqdim = 40  # square length in [units]
             objp = zeros((boardsize[0]*boardsize[1],3), float32)
             objp[:,:2] = mgrid[0:bs[0],0:bs[1]].T.reshape(-1,2) * sqdim
-
-        # External function using CalibratePSEye
-        #   see docstring for additional optional arguments
-        calibrate(processing_params, objp, cam=SSS)
+            # see docstring for additional optional arguments
+            calibrate(processing_params, objp, cam=SSS)
 
         2. Undistortion
 
@@ -94,9 +90,11 @@ as found at https://www.apache.org/licenses/LICENSE-2.0
         https://deepblue.lib.umich.edu/static/about/deepbluepreservation.html
 
     TODO:
-        identify decimal precision of calibration parameters
-        switch from CSV to YAML
+    
+    identify decimal precision of calibration parameters
+    switch from CSV to YAML
 """
+
 import logging  # for debugging
 from os import listdir, mkdir
 from os import remove as os_remove
@@ -430,7 +428,7 @@ class CalibratePSEye():
             criteria = [int(10**-int(log10(self.criteria[-1])) * v) for v in self.criteria]
             f.write('\"criteria\", ' + ', '.join(str(v) for v in criteria))
             f.flush()
-        logging.info('saved processing params to \'%s\'' % fn_params)
+        logging.debug('saved processing params to \'%s\'' % fn_params)
 
         # Object point
         #   precision is basically integer - more than 1mm precision is absurd
@@ -440,7 +438,7 @@ class CalibratePSEye():
                 '\"' + 'x'.join(str(v) for v in self.objp.shape) + '\", '  # size
                 + ', '.join(str(int(v)) for v in self.objp.flatten()))     # points
             f.flush()
-        logging.info('saved objpoints at \'%s\'' % fn_objpoints)
+        logging.debug('saved objpoints at \'%s\'' % fn_objpoints)
 
     def _find_chessboard( self, gray ):
         """
@@ -524,7 +522,7 @@ class CalibratePSEye():
                 self.img_arr[...,i] = cv_imread(f)
 
         # Chessboard computations
-        logging.info('finding chessboards...')
+        logging.debug('finding chessboards...')
         for i in range(self.img_arr.shape[-1]):
             gray = self.img_arr[...,i].copy()
             corners = self._find_chessboard(gray)
@@ -547,7 +545,7 @@ class CalibratePSEye():
         if clean:
             basepath = dirname(cpath)
             self.clean_calib_imgs(basepath=basepath)
-        logging.info('load_calib_imgs() done!')
+        logging.debug('load_calib_imgs() done!')
 
     def record_calib_imgs( self, **kwargs ):
         """
@@ -598,7 +596,7 @@ class CalibratePSEye():
                 cv_imshow('capture', img)
                 press = waitKey(20)
                 if press in (113, 81, 27):  # q, Q, esc:
-                    logging.info('quitting record')
+                    logging.debug('quitting record')
                     break
 
                 # Find chessboard, if possible
@@ -662,7 +660,7 @@ class CalibratePSEye():
         finally:
             cap.release()
             destroyAllWindows()
-            logging.info('released \'%s\'' % cam)
+            logging.debug('released \'%s\'' % cam)
 
     def clean_calib_imgs( self, basepath=None, rawpath=None, cpath=None ):
         """
@@ -985,7 +983,8 @@ class CalibratePSEye():
         """
         Remove calibration files from testing calibration computation.
         """
-        rmtree(self.calibpath)
+        if self.calibpath is not None:
+            rmtree(self.calibpath)
 
 
 def open_camera( cam='/dev/psEye', w=320, h=240, fps=100 ):

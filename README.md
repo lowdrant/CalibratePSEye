@@ -7,11 +7,27 @@ Robust (some might say ornery) interface for camera chessboard calibration, JPEG
 * OpenCV
 * NumPy
 
+## Using this Repository
+
+### Setup
+[linux-setup.sh](linux-setup.sh) handles installing all dependencies and adding this module to PYTHONPATH.
+
+#### Explanation of setup.sh
+1. Installs the udev rule [99-psEye.rules](99-psEye.rules). This maps a PSEye camera to consistent file, `/dev/psEye`
+2. Installs Python library dependencies
+3. Adds CalibratePSEye.py to PYTHONPATH via `~/.profile` 
+4. Creates `data/` directory in this repository
+
+### Camera Calibration
+[CalibratePSEye/CalibratePSEye.py](CalibratePSEye/CalibratePSEye.py) provides calibration utilities to calibrate using a chessboard pattern per the [OpenCV tutorial](https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html). The class is deliberately ornery about overwriting data, so every time calibration process is started (computing of parameters, loading of calibration images), it creates a new time-stamped directory with all calibration data saved into it. It provides support for recording/loading/sanitizing calibration images, computing/loading/saving camera calibration parameters, and undistoring/remapping images. Calibration images are automatically saved every time to a directory of the form `basepath/calibration_yyyymmdd-HHMMSS`.
+
+`setup.sh` adds the module to your PYTHONPATH. You can ensure you have a working interface by running [CalibratePSEye/runtests.py](CalibratePSEye/runtests.py)
+
 ## Some Design Notes
 
 1. This library saves, and only pays attention to, JPG images. This is to match UofM data archival standards. If you find that you want to change that to '.png', or some other, decidedly better image format, go right on ahead. I wish I could.
 
-2. The `CalibratePSEye` class requires the specification of a basepath to store calibration directories.
+2. The `CalibratePSEye` class requires the specification of a basepath to store calibration directories. If you do not specify `basepath` on class initialization, it will create `data/` in this repository.
 
 3. This is an interface for *chessboard* calibration.
 

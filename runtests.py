@@ -11,11 +11,11 @@ as found at https://www.apache.org/licenses/LICENSE-2.0
         
     USAGE:
     
-        runtests.py [-h] [--loglvl{CRITICAL,ERROR,WARNING,INFO,DEBUG}]
+    runtests.py [-h] [--loglvl{CRITICAL,ERROR,WARNING,INFO,DEBUG}]
         
     TODO:
     
-        1. check file permissions and existence at get-go
+    check file permissions and existence at get-go
 """
 from argparse import ArgumentParser
 from logging import CRITICAL as log_CRITICAL

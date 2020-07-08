@@ -13,15 +13,15 @@ Robust (some might say ornery) interface for camera chessboard calibration, JPEG
 [linux-setup.sh](linux-setup.sh) handles installing all dependencies and adding this module to PYTHONPATH.
 
 #### Explanation of setup.sh
-1. Installs the udev rule [99-psEye.rules](99-psEye.rules). This maps a PSEye camera to consistent file, `/dev/psEye`
+1. Installs the udev rule [99-psEye.rules](99-psEye.rules). This maps a PSEye camera to a consistent file, `/dev/psEye`
 2. Installs Python library dependencies
-3. Adds CalibratePSEye.py to PYTHONPATH via `~/.profile` 
+3. Adds CalibratePSEye.py to PYTHONPATH via `~/.profile`
 4. Creates `data/` directory in this repository
 
 ### Camera Calibration
 [CalibratePSEye/CalibratePSEye.py](CalibratePSEye/CalibratePSEye.py) provides calibration utilities to calibrate using a chessboard pattern per the [OpenCV tutorial](https://docs.opencv.org/master/dc/dbb/tutorial_py_calibration.html). The class is deliberately ornery about overwriting data, so every time calibration process is started (computing of parameters, loading of calibration images), it creates a new time-stamped directory with all calibration data saved into it. It provides support for recording/loading/sanitizing calibration images, computing/loading/saving camera calibration parameters, and undistoring/remapping images. Calibration images are automatically saved every time to a directory of the form `basepath/calibration_yyyymmdd-HHMMSS`.
 
-`setup.sh` adds the module to your PYTHONPATH. You can ensure you have a working interface by running [CalibratePSEye/runtests.py](CalibratePSEye/runtests.py)
+`linux-setup.sh` adds the module to your PYTHONPATH. You can ensure you have a working interface by running [CalibratePSEye/runtests.py](CalibratePSEye/runtests.py)
 
 ## Some Design Notes
 
